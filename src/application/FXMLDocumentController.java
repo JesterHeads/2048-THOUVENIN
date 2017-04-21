@@ -17,6 +17,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import java.util.ArrayList;
+import java.util.Random;
 //import javafx.scene.paint.Color;
 //import javafx.scene.text.Font;
 
@@ -39,8 +41,11 @@ public class FXMLDocumentController implements Initializable {
     private Pane fond; // panneau recouvrant toute la fenêtre
 
     // variables globales non définies dans la vue (fichier .fxml)
-    private final Pane p = new Pane(); // panneau utilisé pour dessiner une tuile "2"
+    @FXML
+    private final Pane p1 = new Pane(); // panneau utilisé pour dessiner une tuile "2"
+    @FXML
     private final Label c = new Label("2");
+    ArrayList<Pane> ListTuile = new ArrayList<Pane>();
     private int x = 24, y = 191;
     private int objectifx = 24, objectify = 191;
 
@@ -49,17 +54,20 @@ public class FXMLDocumentController implements Initializable {
         // TODO
         System.out.println("le contrôleur initialise la vue");
         // utilisation de styles pour la grille et la tuile (voir styles.css)
-        p.getStyleClass().add("pane"); 
+        
+        p1.getStyleClass().add("pane"); 
         c.getStyleClass().add("tuile");
         grille.getStyleClass().add("gridpane");
+        ListTuile.add(p1);
+        Pane FirstTuile = ListTuile.get(0);
         GridPane.setHalignment(c, HPos.CENTER);
-        fond.getChildren().add(p);
-        p.getChildren().add(c);
-
+        fond.getChildren().add(FirstTuile);
+        FirstTuile.getChildren().add(c);
+       
         // on place la tuile en précisant les coordonnées (x,y) du coin supérieur gauche
-        p.setLayoutX(x);
-        p.setLayoutY(y);
-        p.setVisible(true);
+        FirstTuile.setLayoutX(x);
+        FirstTuile.setLayoutY(y);
+        FirstTuile.setVisible(true);
         c.setVisible(true);
     }
 
@@ -72,6 +80,9 @@ public class FXMLDocumentController implements Initializable {
         System.out.println("Glisser/déposer sur la grille avec la souris");
         double x = event.getX();//translation en abscisse
         double y = event.getY();//translation en ordonnée
+        System.out.println(x);
+        System.out.println(y); 
+   
         if (x > y) {
             for (int i = 0; i < grille.getChildren().size(); i++) { //pour chaque colonne
                 //for (int j = 0; j < grille.getRowConstraints().size(); j++) { //pour chaque ligne
@@ -107,31 +118,43 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     public void keyPressed(KeyEvent ke) {
         System.out.println("touche appuyée");
+        
         String touche = ke.getText();
         if (touche.compareTo("q") == 0) { // utilisateur appuie sur "q" pour envoyer la tuile vers la gauche
             if (objectifx > 24) { // possible uniquement si on est pas dans la colonne la plus à gauche
                 objectifx -= (int) 3*397/4; // on définit la position que devra atteindre la tuile en abscisse (modèle). Le thread se chargera de mettre la vue à jour
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1)); // mise à jour du compteur de mouvement
+                ListTuile.add(new Pane());
+                initPane(ListTuile.get(ListTuile.size()-1));
             }
         } else if (touche.compareTo("d") == 0) { // utilisateur appuie sur "d" pour envoyer la tuile vers la droite
             if (objectifx < (int) 445 - 2 * 397 / 4 - 24) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectifx += (int) 3*397/4;
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
+                ListTuile.add(new Pane());
+                initPane(ListTuile.get(ListTuile.size()-1));
             }
         } else if (touche.compareTo("w") == 0) { // utilisateur appuie sur "w" pour envoyer la tuile vers le bas
             if (objectify < (int) 613 - 2 * 397 / 4 - 25) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectify += (int) 3*397/4;
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
+                ListTuile.add(new Pane());
+                initPane(ListTuile.get(ListTuile.size()-1));
             }
         } else if (touche.compareTo("z") == 0) { // utilisateur appuie sur "z" pour envoyer la tuile vers le haut
             if (objectify > 191) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectify -= (int) 3*397/4;
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
+                ListTuile.add(new Pane());
+                initPane(ListTuile.get(ListTuile.size()-1));
             }
         }
+        
         System.out.println("objectifx=" + objectifx);
+        
+
         Task task = new Task<Void>() { // on définit une tâche parallèle pour mettre à jour la vue
-            @Override
+            @Override 
             public Void call() throws Exception { // implémentation de la méthode protected abstract V call() dans la classe Task
                 while (x != objectifx) { // si la tuile n'est pas à la place qu'on souhaite attendre en abscisse
                     if (x < objectifx) {
@@ -144,8 +167,9 @@ public class FXMLDocumentController implements Initializable {
                         @Override
                         public void run() {
                             //javaFX operations should go here
-                            p.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
-                            p.setVisible(true);    
+                            
+                                p1.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
+                                p1.setVisible(true);    
                         }
                     }
                     );
@@ -162,8 +186,8 @@ public class FXMLDocumentController implements Initializable {
                         @Override
                         public void run() {
                             //javaFX operations should go here
-                            p.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
-                            p.setVisible(true);    
+                            p1.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
+                            p1.setVisible(true);    
                         }
                     }
                     );
@@ -180,5 +204,38 @@ public class FXMLDocumentController implements Initializable {
             bestScore = score;
             bestScore.setText(Integer.toString(Integer.parseInt(bestScore.getText())));
         }
+    }
+    
+    public void initPane(Pane p) {
+        if (Math.random()>0.5) {
+            Label l = new Label("4");
+            p.getStyleClass().add("pane"); 
+            l.getStyleClass().add("tuile");
+            grille.getStyleClass().add("gridpane");
+            GridPane.setHalignment(l, HPos.CENTER);
+            fond.getChildren().add(p);
+            p.getChildren().add(l);
+
+            // on place la tuile en précisant les coordonnées (x,y) du coin supérieur gauche
+            p.setLayoutX(x);
+            p.setLayoutY(y);
+            p.setVisible(true);
+            l.setVisible(true);
+        } 
+        else {
+            Label l = new Label("2");
+             p.getStyleClass().add("pane"); 
+            l.getStyleClass().add("tuile");
+            grille.getStyleClass().add("gridpane");
+            GridPane.setHalignment(l, HPos.CENTER);
+            fond.getChildren().add(p);
+            p.getChildren().add(l);
+
+            // on place la tuile en précisant les coordonnées (x,y) du coin supérieur gauche
+            p.setLayoutX(x);
+            p.setLayoutY(y);
+            p.setVisible(true);
+            l.setVisible(true);
+        }   
     }
 }
