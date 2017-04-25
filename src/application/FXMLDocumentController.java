@@ -48,7 +48,7 @@ public class FXMLDocumentController implements Initializable {
     private final Label c = new Label("2");
     ArrayList<Pane> ListTuile = new ArrayList<Pane>();
     private double x = 24, y = 191;
-    private double objectifx = 24, objectify = 191;
+    private double objectifx , objectify;
 
 
     @Override
@@ -114,33 +114,14 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void handleButtonAction(MouseEvent event) {
-        restart();
-    }
-
-    /**
-     * réinitialise la vue et le modèle pour une nouvelle partie
-     */
-    public void restart() {
-        score.setText("0");
-        ListTuile.clear();
-        ListTuile.add(p1);
-        Pane FirstTuile = ListTuile.get(0);
-        GridPane.setHalignment(c, HPos.CENTER);
-        fond.getChildren().add(FirstTuile);
-        FirstTuile.getChildren().add(c);
-       
-        // on place la tuile en précisant les coordonnées (x,y) du coin supérieur gauche
-        FirstTuile.setLayoutX(x);
-        FirstTuile.setLayoutY(y);
-        FirstTuile.setVisible(true);
-        c.setVisible(true);
+        System.out.println("Clic de souris sur le bouton menu");
     }
 
     @FXML
     public void keyPressed(KeyEvent ke) {
         System.out.println("touche appuyée");
-        
-        String touche = ke.getText();
+        if (canMove()){
+            String touche = ke.getText();
         if (touche.compareTo("q") == 0) { // utilisateur appuie sur "q" pour envoyer la tuile vers la gauche
             if (objectifx > 24) { // possible uniquement si on est pas dans la colonne la plus à gauche
                 objectifx -= (int) 3*397/4; // on définit la position que devra atteindre la tuile en abscisse (modèle). Le thread se chargera de mettre la vue à jour
@@ -154,8 +135,7 @@ public class FXMLDocumentController implements Initializable {
         } else if (touche.compareTo("w") == 0) { // utilisateur appuie sur "w" pour envoyer la tuile vers le bas
             if (objectify < (int) 613 - 2 * 397 / 4 - 25) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectify += (int) 3*397/4;
-                score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
-
+                score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));  
             }
         } else if (touche.compareTo("z") == 0) { // utilisateur appuie sur "z" pour envoyer la tuile vers le haut
             if (objectify > 191) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
@@ -163,73 +143,21 @@ public class FXMLDocumentController implements Initializable {
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
             }
         }
+        moving();
         
+        ListTuile.add(new Pane());
+        initPane(ListTuile.get(ListTuile.size()-1));
+
         System.out.println("objectifx=" + objectifx);
         System.out.println("objectify=" + objectify);
-        
-
-        Task task = new Task<Void>() { // on définit une tâche parallèle pour mettre à jour la vue
-            @Override 
-            public Void call() throws Exception { // implémentation de la méthode protected abstract V call() dans la classe Task
-                while (x != objectifx) { // si la tuile n'est pas à la place qu'on souhaite attendre en abscisse
-                    if (x < objectifx) {
-                        x += 1; // si on va vers la droite, on modifie la position de la tuile pixel par pixel vers la droite
-                    } else {
-                        x -= 1; // si on va vers la gauche, idem en décrémentant la valeur de x
-                    }
-                    // Platform.runLater est nécessaire en JavaFX car la GUI ne peut être modifiée que par le Thread courant, contrairement à Swing où on peut utiliser un autre Thread pour ça
-                    Platform.runLater(new Runnable() { // classe anonyme
-                        @Override
-                        public void run() {
-                            //javaFX operations should go here
-                            
-                                p1.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
-                                p1.setVisible(true);    
-                        }
-                    }
-                    );
-                    Thread.sleep(1);
-                } // end while
-                while (y != objectify) { // si la tuile n'est pas à la place qu'on souhaite attendre en abscisse
-                    if (y < objectify) {
-                        y += 1; // si on va vers le haut, on modifie la position de la tuile pixel par pixel vers le haut
-                    } else {
-                        y -= 1; // si on va vers le bas, idem en décrémentant la valeur de y
-                    }
-                    // Platform.runLater est nécessaire en JavaFX car la GUI ne peut être modifiée que par le Thread courant, contrairement à Swing où on peut utiliser un autre Thread pour ça
-                    Platform.runLater(new Runnable() { // classe anonyme
-                        @Override
-                        public void run() {
-                            //javaFX operations should go here
-                            p1.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
-                            p1.setVisible(true);    
-                        }
-                    }
-                    );
-                    Thread.sleep(1);
-                } // end while
-                return null; // la méthode call doit obligatoirement retourner un objet. Ici on n'a rien de particulier à retourner. Du coup, on utilise le type Void (avec un V majuscule) : c'est un type spécial en Java auquel on ne peut assigner que la valeur null
-            } // end call
-        };
-        
-        Thread th = new Thread(task); // on crée un contrôleur de Thread
-        th.setDaemon(true); // le Thread s'exécutera en arrière-plan (démon informatique)
-        th.start(); // et on exécute le Thread pour mettre à jour la vue (déplacement continu de la tuile horizontalement)
-        int sc=Integer.parseInt(score.getText());//valeur du score
-        int bsc= Integer.parseInt(bestScore.getText());//valeur du meilleur score
-        if (sc > bsc){
-            bsc = sc;
-            bestScore.setText(Integer.toString(bsc));
+            
         }
-        ListTuile.add(new Pane());
-        if(ListTuile.size()<24){
-            initPane(ListTuile.get(ListTuile.size()-1));
-        }
+        else {System.out.println("Wait till action finished");}
     }
     
     public void initPane(Pane p) {
-        
-        if (Math.random()>0.7) {
+
+        if (Math.random()>0.5) {
             Label l = new Label("4");
             p.getStyleClass().add("pane"); 
             l.getStyleClass().add("tuile");
@@ -272,5 +200,70 @@ public class FXMLDocumentController implements Initializable {
             }
         }
         return present;
+    }
+    
+    public void moving () {
+        Task task = new Task<Void>() { // on définit une tâche parallèle pour mettre à jour la vue
+            @Override 
+            public Void call() throws Exception { // implémentation de la méthode protected abstract V call() dans la classe Task
+                while (x != objectifx) { // si la tuile n'est pas à la place qu'on souhaite attendre en abscisse
+                    if (x < objectifx) {
+                        x += 1; // si on va vers la droite, on modifie la position de la tuile pixel par pixel vers la droite
+                    } else {
+                        x -= 1; // si on va vers la gauche, idem en décrémentant la valeur de x
+                    }
+                    // Platform.runLater est nécessaire en JavaFX car la GUI ne peut être modifiée que par le Thread courant, contrairement à Swing où on peut utiliser un autre Thread pour ça
+                    Platform.runLater(new Runnable() { // classe anonyme
+                        @Override
+                        public void run() {
+                            //javaFX operations should go here
+                            
+                                p1.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
+                                p1.setVisible(true);  
+                        }
+                    }
+                    );
+                    Thread.sleep(1);
+                } // end while
+                while (y != objectify) { // si la tuile n'est pas à la place qu'on souhaite attendre en abscisse
+                    if (y < objectify) {
+                        y += 1; // si on va vers le haut, on modifie la position de la tuile pixel par pixel vers le haut
+                    } else {
+                        y -= 1; // si on va vers le bas, idem en décrémentant la valeur de y
+                    }
+                    // Platform.runLater est nécessaire en JavaFX car la GUI ne peut être modifiée que par le Thread courant, contrairement à Swing où on peut utiliser un autre Thread pour ça
+                    Platform.runLater(new Runnable() { // classe anonyme
+                        @Override
+                        public void run() {
+                            //javaFX operations should go here
+                            p1.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
+                            p1.setVisible(true);    
+                        }
+                    }       
+                    );
+                    Thread.sleep(1); 
+                } // end while
+                return null; // la méthode call doit obligatoirement retourner un objet. Ici on n'a rien de particulier à retourner. Du coup, on utilise le type Void (avec un V majuscule) : c'est un type spécial en Java auquel on ne peut assigner que la valeur null
+            } // end call
+
+        };
+        Thread th = new Thread(task); // on crée un contrôleur de Thread
+        th.setDaemon(true); // le Thread s'exécutera en arrière-plan (démon informatique)
+        th.start(); // et on exécute le Thread pour mettre à jour la vue (déplacement continu de la tuile horizontalement)
+        int sc=Integer.parseInt(score.getText());//valeur du score
+        int bsc= Integer.parseInt(bestScore.getText());//valeur du meilleur score
+        if (sc > bsc){
+            bestScore = score;
+            bestScore.setText(Integer.toString(Integer.parseInt(bestScore.getText())));
+        }
+  
+    }
+    
+    public boolean canMove() {
+        boolean canmove = false;
+         if (x!=objectifx && y!=objectify) {
+             canmove = true; 
+         }
+         return canmove;
     }
 }
