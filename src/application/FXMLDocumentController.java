@@ -126,38 +126,22 @@ public class FXMLDocumentController implements Initializable {
             if (objectifx > 24) { // possible uniquement si on est pas dans la colonne la plus à gauche
                 objectifx -= (int) 3*397/4; // on définit la position que devra atteindre la tuile en abscisse (modèle). Le thread se chargera de mettre la vue à jour
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1)); // mise à jour du compteur de mouvement
-                ListTuile.add(new Pane());
-                if(ListTuile.size()<24){
-                    initPane(ListTuile.get(ListTuile.size()-1));
-                }
             }
         } else if (touche.compareTo("d") == 0) { // utilisateur appuie sur "d" pour envoyer la tuile vers la droite
             if (objectifx < (int) 445 - 2 * 397 / 4 - 24) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectifx += (int) 3*397/4;
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
-                ListTuile.add(new Pane());
-                if(ListTuile.size()<23){
-                    initPane(ListTuile.get(ListTuile.size()-1));
-                }
             }
         } else if (touche.compareTo("w") == 0) { // utilisateur appuie sur "w" pour envoyer la tuile vers le bas
             if (objectify < (int) 613 - 2 * 397 / 4 - 25) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectify += (int) 3*397/4;
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
-                ListTuile.add(new Pane());
-                if(ListTuile.size()<24){
-                    initPane(ListTuile.get(ListTuile.size()-1));
-                }
 
             }
         } else if (touche.compareTo("z") == 0) { // utilisateur appuie sur "z" pour envoyer la tuile vers le haut
             if (objectify > 191) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectify -= (int) 3*397/4;
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
-                ListTuile.add(new Pane());
-                if(ListTuile.size()<24){
-                    initPane(ListTuile.get(ListTuile.size()-1));
-                }
             }
         }
         
@@ -207,8 +191,8 @@ public class FXMLDocumentController implements Initializable {
                 } // end while
                 return null; // la méthode call doit obligatoirement retourner un objet. Ici on n'a rien de particulier à retourner. Du coup, on utilise le type Void (avec un V majuscule) : c'est un type spécial en Java auquel on ne peut assigner que la valeur null
             } // end call
-
         };
+        
         Thread th = new Thread(task); // on crée un contrôleur de Thread
         th.setDaemon(true); // le Thread s'exécutera en arrière-plan (démon informatique)
         th.start(); // et on exécute le Thread pour mettre à jour la vue (déplacement continu de la tuile horizontalement)
@@ -218,11 +202,15 @@ public class FXMLDocumentController implements Initializable {
             bestScore = score;
             bestScore.setText(Integer.toString(Integer.parseInt(bestScore.getText())));
         }
+        ListTuile.add(new Pane());
+        if(ListTuile.size()<24){
+            initPane(ListTuile.get(ListTuile.size()-1));
+        }
     }
     
     public void initPane(Pane p) {
-
-        if (Math.random()>0.5) {
+        
+        if (Math.random()>0.7) {
             Label l = new Label("4");
             p.getStyleClass().add("pane"); 
             l.getStyleClass().add("tuile");
