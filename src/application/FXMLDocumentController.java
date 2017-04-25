@@ -34,6 +34,7 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private Label score; // value will be injected by the FXMLLoader
     
+    @FXML
     private Label bestScore;
     @FXML
     private GridPane grille;
@@ -46,15 +47,16 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private final Label c = new Label("2");
     ArrayList<Pane> ListTuile = new ArrayList<Pane>();
-    private int x = 24, y = 191;
-    private int objectifx = 24, objectify = 191;
+    private double x = 24, y = 191;
+    private double objectifx = 24, objectify = 191;
+
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
         System.out.println("le contrôleur initialise la vue");
         // utilisation de styles pour la grille et la tuile (voir styles.css)
-        
+
         p1.getStyleClass().add("pane"); 
         c.getStyleClass().add("tuile");
         grille.getStyleClass().add("gridpane");
@@ -125,32 +127,42 @@ public class FXMLDocumentController implements Initializable {
                 objectifx -= (int) 3*397/4; // on définit la position que devra atteindre la tuile en abscisse (modèle). Le thread se chargera de mettre la vue à jour
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1)); // mise à jour du compteur de mouvement
                 ListTuile.add(new Pane());
-                initPane(ListTuile.get(ListTuile.size()-1));
+                if(ListTuile.size()<24){
+                    initPane(ListTuile.get(ListTuile.size()-1));
+                }
             }
         } else if (touche.compareTo("d") == 0) { // utilisateur appuie sur "d" pour envoyer la tuile vers la droite
             if (objectifx < (int) 445 - 2 * 397 / 4 - 24) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectifx += (int) 3*397/4;
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
                 ListTuile.add(new Pane());
-                initPane(ListTuile.get(ListTuile.size()-1));
+                if(ListTuile.size()<23){
+                    initPane(ListTuile.get(ListTuile.size()-1));
+                }
             }
         } else if (touche.compareTo("w") == 0) { // utilisateur appuie sur "w" pour envoyer la tuile vers le bas
             if (objectify < (int) 613 - 2 * 397 / 4 - 25) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectify += (int) 3*397/4;
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
                 ListTuile.add(new Pane());
-                initPane(ListTuile.get(ListTuile.size()-1));
+                if(ListTuile.size()<24){
+                    initPane(ListTuile.get(ListTuile.size()-1));
+                }
+
             }
         } else if (touche.compareTo("z") == 0) { // utilisateur appuie sur "z" pour envoyer la tuile vers le haut
             if (objectify > 191) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
                 objectify -= (int) 3*397/4;
                 score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
                 ListTuile.add(new Pane());
-                initPane(ListTuile.get(ListTuile.size()-1));
+                if(ListTuile.size()<24){
+                    initPane(ListTuile.get(ListTuile.size()-1));
+                }
             }
         }
         
         System.out.println("objectifx=" + objectifx);
+        System.out.println("objectify=" + objectify);
         
 
         Task task = new Task<Void>() { // on définit une tâche parallèle pour mettre à jour la vue
@@ -200,13 +212,16 @@ public class FXMLDocumentController implements Initializable {
         Thread th = new Thread(task); // on crée un contrôleur de Thread
         th.setDaemon(true); // le Thread s'exécutera en arrière-plan (démon informatique)
         th.start(); // et on exécute le Thread pour mettre à jour la vue (déplacement continu de la tuile horizontalement)
-        if (Integer.parseInt(score.getText()) > Integer.parseInt(bestScore.getText())){
+        int sc=Integer.parseInt(score.getText());//valeur du score
+        int bsc= Integer.parseInt(bestScore.getText());//valeur du meilleur score
+        if (sc > bsc){
             bestScore = score;
             bestScore.setText(Integer.toString(Integer.parseInt(bestScore.getText())));
         }
     }
     
     public void initPane(Pane p) {
+
         if (Math.random()>0.5) {
             Label l = new Label("4");
             p.getStyleClass().add("pane"); 
@@ -219,12 +234,13 @@ public class FXMLDocumentController implements Initializable {
             // on place la tuile en précisant les coordonnées (x,y) du coin supérieur gauche
             p.setLayoutX(x);
             p.setLayoutY(y);
+
             p.setVisible(true);
             l.setVisible(true);
         } 
         else {
             Label l = new Label("2");
-             p.getStyleClass().add("pane"); 
+            p.getStyleClass().add("pane");
             l.getStyleClass().add("tuile");
             grille.getStyleClass().add("gridpane");
             GridPane.setHalignment(l, HPos.CENTER);
@@ -234,8 +250,20 @@ public class FXMLDocumentController implements Initializable {
             // on place la tuile en précisant les coordonnées (x,y) du coin supérieur gauche
             p.setLayoutX(x);
             p.setLayoutY(y);
+
             p.setVisible(true);
             l.setVisible(true);
         }   
+    }
+
+    public boolean verifierTuile(Pane p){
+        boolean present=false;
+        for(Pane t : ListTuile){
+            if(t.getLayoutX()==p.getLayoutX() && t.getLayoutY()==p.getLayoutY()){
+                present=true;
+                break;
+            }
+        }
+        return present;
     }
 }
