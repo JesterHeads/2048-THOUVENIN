@@ -114,7 +114,26 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void handleButtonAction(MouseEvent event) {
-        System.out.println("Clic de souris sur le bouton menu");
+        restart();
+    }
+
+    /**
+     * réinitialise la vue et le modèle pour une nouvelle partie
+     */
+    public void restart() {
+        score.setText("0");
+        ListTuile.clear();
+        ListTuile.add(p1);
+        Pane FirstTuile = ListTuile.get(0);
+        GridPane.setHalignment(c, HPos.CENTER);
+        fond.getChildren().add(FirstTuile);
+        FirstTuile.getChildren().add(c);
+       
+        // on place la tuile en précisant les coordonnées (x,y) du coin supérieur gauche
+        FirstTuile.setLayoutX(x);
+        FirstTuile.setLayoutY(y);
+        FirstTuile.setVisible(true);
+        c.setVisible(true);
     }
 
     @FXML
@@ -199,8 +218,8 @@ public class FXMLDocumentController implements Initializable {
         int sc=Integer.parseInt(score.getText());//valeur du score
         int bsc= Integer.parseInt(bestScore.getText());//valeur du meilleur score
         if (sc > bsc){
-            bestScore = score;
-            bestScore.setText(Integer.toString(Integer.parseInt(bestScore.getText())));
+            bsc = sc;
+            bestScore.setText(Integer.toString(bsc));
         }
         ListTuile.add(new Pane());
         if(ListTuile.size()<24){
