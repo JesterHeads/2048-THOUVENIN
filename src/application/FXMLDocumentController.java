@@ -18,14 +18,19 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import javafx.geometry.VPos;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.Priority;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import javafx.scene.layout.RowConstraints;
+import model.Case;
+import model.Grille;
 //import javafx.scene.paint.Color;
 //import javafx.scene.text.Font;
 
-/**
- *
- * @author castagno
- */
+
 public class FXMLDocumentController implements Initializable {
     /*
      * Variables globales correspondant à des objets définis dans la vue (fichier .fxml)
@@ -42,41 +47,121 @@ public class FXMLDocumentController implements Initializable {
     private Pane fond; // panneau recouvrant toute la fenêtre
 
     // variables globales non définies dans la vue (fichier .fxml)
-    @FXML
-    private final Pane p1 = new Pane(); // panneau utilisé pour dessiner une tuile "2"
-    @FXML
-    private final Label c = new Label("2");
+  
+    
+    
     ArrayList<Pane> ListTuile = new ArrayList<Pane>();
-    private double x = 24, y = 191;
-    private double objectifx , objectify;
+    
+    private Pane p1 = new Pane(); //Ne doit plus etre utilisé (pas encore a supprimé sinon ereur de compilation (pour l'instant)
+    private double x = 24, y = 191; //Plus etre utilisé
+    private double objectifx = 24 , objectify = 191; // IDEM
+    
+    private Grille Modelgrille; // L'oject grille issue du model Grille
+ 
+    private double LargeurCase; // Largeur en px d'une case
+    private double[] pixelXCase; // Tableau contenant l'abssise en px de chaque case
+    private double[] pixelYCase; // Tableau contenant l'ordonnée en px de chaque case
+    
+    final private double pX = 24; //Plus utiliser
+    final private double pY = 191; //Plus utiliser
+    final private int TAILLEGRILLE = 4; //Notre grille est de format 4*4
+    
+    
 
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
         System.out.println("le contrôleur initialise la vue");
-        // utilisation de styles pour la grille et la tuile (voir styles.css)
+        // utilisation de styles pour la grille
+   
+        Modelgrille = new Grille();
+        fond.getStyleClass().add("fond");
+        pixelXCase = new double[TAILLEGRILLE];
+        pixelYCase = new double[TAILLEGRILLE];
+        
+        InitGrille();
 
-        p1.getStyleClass().add("pane"); 
-        c.getStyleClass().add("tuile");
-        grille.getStyleClass().add("gridpane");
-        ListTuile.add(p1);
-        Pane FirstTuile = ListTuile.get(0);
-        GridPane.setHalignment(c, HPos.CENTER);
-        fond.getChildren().add(FirstTuile);
-        FirstTuile.getChildren().add(c);
-       
-        // on place la tuile en précisant les coordonnées (x,y) du coin supérieur gauche
-        FirstTuile.setLayoutX(x);
-        FirstTuile.setLayoutY(y);
-        FirstTuile.setVisible(true);
-        c.setVisible(true);
     }
+    
+    private void InitGrille() {
+
+        //Création des colonnes et des lignes
+        grille.getRowConstraints().clear();
+        grille.getColumnConstraints().clear();
+        for (int i = 0; i < TAILLEGRILLE; i++) {
+            grille.getRowConstraints().add(new RowConstraints(25, 100, USE_COMPUTED_SIZE, Priority.SOMETIMES, VPos.TOP, true));
+            grille.getColumnConstraints().add(new ColumnConstraints(25, 100, USE_COMPUTED_SIZE, Priority.SOMETIMES, HPos.LEFT, true));
+        }
+
+        //Définition des limites des case en pixels
+        LargeurCase = grille.getPrefWidth() / TAILLEGRILLE;
+        System.out.println(grille.getLayoutX() + (LargeurCase * 0));
+        System.out.println(grille.getLayoutY());
+        for (int i = 0; i < TAILLEGRILLE; i++) {
+            pixelXCase[i] = grille.getLayoutX() + (LargeurCase * i);
+            pixelYCase[i] = grille.getLayoutY() + (LargeurCase * i);
+        }
+
+        //Initialisation du fond de la grille avec le css
+        for (int i = 0; i < TAILLEGRILLE; i++) {
+            for (int j = 0; j < TAILLEGRILLE; j++) {
+                Pane casevide = new Pane();
+                casevide.getStyleClass().add("gridpane");
+                grille.add(casevide, i, j);
+            }
+        }
+        
+       // fond.getChildren().remove(PaneEndGame); A FAIRE QUAND ON REINITIALISE LA PERTIE 
+       
+       // Creation de la premiere case lorsque l'on commence le jeux
+       Case fistCase = new Case(0,0,2);
+       this.Modelgrille.getGrille().add(fistCase); //ajout de la Case au modele
+       this.addCase(); //Appele de l a methode qui permettra d'ajouter la case graphiquement 
+        
+    }
+    
+    public void addCase() {
+        // Recuperation des objets constitué des Cases contenu dans la grille du modele
+        Object[] tabcase = this.Modelgrille.getGrille().toArray();
+        Case newcase = (Case)tabcase[tabcase.length - 1];
+        
+        // Récupération des coordonnées des pixiels de la tuile
+        double pixX = pixelXCase[(newcase.getX())];
+        double pixY = pixelYCase[(newcase.getY())];
+        
+        // Attibution du label 
+        Label val = new Label(Integer.toString(newcase.getValeur()));
+        Pane tuile = new Pane();
+        
+     
+ 
+        //String valeur = val.getText();
+        // application du style css sur la nouvelle tuile a afficher
+        
+        // Application du css sur la tuile 
+        tuile.getStyleClass().add("pane");
+        val.getStyleClass().add("tuile");
+        GridPane.setHalignment(val, HPos.CENTER);
+        fond.getChildren().add(tuile);
+        tuile.getChildren().add(val);
+        tuile.setPrefHeight(LargeurCase);
+        tuile.setPrefWidth(LargeurCase); 
+        
+        // Positionnement de la Tuile
+        tuile.setLayoutX(pixX);
+        tuile.setLayoutY(pixY);
+        tuile.setVisible(true);
+        val.setVisible(true);
+    }
+    
+    
 
     /*
      * Méthodes listeners pour gérer les événements (portent les mêmes noms que
      * dans Scene Builder
      */
+    
     @FXML
     private void handleDragAction(MouseEvent event) {
         System.out.println("Glisser/déposer sur la grille avec la souris");
@@ -85,7 +170,7 @@ public class FXMLDocumentController implements Initializable {
         System.out.println(x);
         System.out.println(y); 
    
-        if (x > y) {
+       /* if (x > y) {
             for (int i = 0; i < grille.getChildren().size(); i++) { //pour chaque colonne
                 //for (int j = 0; j < grille.getRowConstraints().size(); j++) { //pour chaque ligne
                 System.out.println("ok1");
@@ -95,7 +180,7 @@ public class FXMLDocumentController implements Initializable {
                  if (tuile != null) {
                  int rowIndex = GridPane.getRowIndex(tuile);
                  int rowEnd = GridPane.getRowIndex(tuile);
-                 }*/
+                 }
                 // }
             }
         } else if (x < y) {
@@ -109,8 +194,8 @@ public class FXMLDocumentController implements Initializable {
                     grille.getStyleClass().add("gridpane");
                 }
             }
-        }
-    }
+        } */
+    } 
 
     @FXML
     private void handleButtonAction(MouseEvent event) {
@@ -120,7 +205,6 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     public void keyPressed(KeyEvent ke) {
         System.out.println("touche appuyée");
-        if (canMove()){
             String touche = ke.getText();
         if (touche.compareTo("q") == 0) { // utilisateur appuie sur "q" pour envoyer la tuile vers la gauche
             if (objectifx > 24) { // possible uniquement si on est pas dans la colonne la plus à gauche
@@ -144,15 +228,7 @@ public class FXMLDocumentController implements Initializable {
             }
         }
         moving();
-        
-        ListTuile.add(new Pane());
-        initPane(ListTuile.get(ListTuile.size()-1));
 
-        System.out.println("objectifx=" + objectifx);
-        System.out.println("objectify=" + objectify);
-            
-        }
-        else {System.out.println("Wait till action finished");}
     }
     
     public void initPane(Pane p) {
@@ -247,16 +323,16 @@ public class FXMLDocumentController implements Initializable {
             } // end call
 
         };
+        
         Thread th = new Thread(task); // on crée un contrôleur de Thread
         th.setDaemon(true); // le Thread s'exécutera en arrière-plan (démon informatique)
         th.start(); // et on exécute le Thread pour mettre à jour la vue (déplacement continu de la tuile horizontalement)
         int sc=Integer.parseInt(score.getText());//valeur du score
         int bsc= Integer.parseInt(bestScore.getText());//valeur du meilleur score
         if (sc > bsc){
-            bestScore = score;
-            bestScore.setText(Integer.toString(Integer.parseInt(bestScore.getText())));
+            bsc = sc;
+            bestScore.setText(Integer.toString(bsc));
         }
-  
     }
     
     public boolean canMove() {
