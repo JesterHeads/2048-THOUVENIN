@@ -22,16 +22,21 @@ import java.util.HashSet;
 import java.util.Random;
 import javafx.geometry.VPos;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.scene.layout.Priority;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import javafx.scene.layout.RowConstraints;
 import model.Case;
 import model.Grille;
+import application.Parametres;
 //import javafx.scene.paint.Color;
 //import javafx.scene.text.Font;
 
 
-public class FXMLDocumentController implements Initializable {
+
+
+public class FXMLDocumentController implements Initializable, Parametres {
     /*
      * Variables globales correspondant à des objets définis dans la vue (fichier .fxml)
      * Ces variables sont ajoutées à la main et portent le même nom que les fx:id dans Scene Builder
@@ -56,17 +61,17 @@ public class FXMLDocumentController implements Initializable {
     private double x = 24, y = 191; //Plus etre utilisé
     private double objectifx = 24 , objectify = 191; // IDEM
     
-    private Grille Modelgrille; // L'oject grille issue du model Grille
+    private Grille modelgrille;
+    private int typeMouve;// L'oject grille issue du model Grille
  
     private double LargeurCase; // Largeur en px d'une case
     private double[] pixelXCase; // Tableau contenant l'abssise en px de chaque case
     private double[] pixelYCase; // Tableau contenant l'ordonnée en px de chaque case
+    private ParallelTransition mouvement = new ParallelTransition();
     
     final private double pX = 24; //Plus utiliser
     final private double pY = 191; //Plus utiliser
     final private int TAILLEGRILLE = 4; //Notre grille est de format 4*4
-    
-    
 
 
     @Override
@@ -75,7 +80,7 @@ public class FXMLDocumentController implements Initializable {
         System.out.println("le contrôleur initialise la vue");
         // utilisation de styles pour la grille
    
-        Modelgrille = new Grille();
+        modelgrille = new Grille();
         fond.getStyleClass().add("fond");
         pixelXCase = new double[TAILLEGRILLE];
         pixelYCase = new double[TAILLEGRILLE];
@@ -116,15 +121,15 @@ public class FXMLDocumentController implements Initializable {
        
        // Creation de la premiere case lorsque l'on commence le jeux
        Case fistCase = new Case(0,0,2);
-       this.Modelgrille.getGrille().add(fistCase); //ajout de la Case au modele
+       this.modelgrille.getGrille().add(fistCase); //ajout de la Case au modele "manuelement car elle doit avoir une potition et un label particulier
        this.addCase(); //Appele de l a methode qui permettra d'ajouter la case graphiquement 
-        
+       System.out.println(this.modelgrille.getGrille());
     }
     
     public void addCase() {
         // Recuperation des objets constitué des Cases contenu dans la grille du modele
-        Object[] tabcase = this.Modelgrille.getGrille().toArray();
-        Case newcase = (Case)tabcase[tabcase.length - 1];
+        
+        Case newcase = getNewcase();
         
         // Récupération des coordonnées des pixiels de la tuile
         double pixX = pixelXCase[(newcase.getX())];
@@ -133,9 +138,7 @@ public class FXMLDocumentController implements Initializable {
         // Attibution du label 
         Label val = new Label(Integer.toString(newcase.getValeur()));
         Pane tuile = new Pane();
-        
-     
- 
+
         //String valeur = val.getText();
         // application du style css sur la nouvelle tuile a afficher
         
@@ -207,30 +210,22 @@ public class FXMLDocumentController implements Initializable {
         System.out.println("touche appuyée");
             String touche = ke.getText();
         if (touche.compareTo("q") == 0) { // utilisateur appuie sur "q" pour envoyer la tuile vers la gauche
-            if (objectifx > 24) { // possible uniquement si on est pas dans la colonne la plus à gauche
-                objectifx -= (int) 3*397/4; // on définit la position que devra atteindre la tuile en abscisse (modèle). Le thread se chargera de mettre la vue à jour
-                score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1)); // mise à jour du compteur de mouvement
-            }
+            typeMouve = GAUCHE;
         } else if (touche.compareTo("d") == 0) { // utilisateur appuie sur "d" pour envoyer la tuile vers la droite
-            if (objectifx < (int) 445 - 2 * 397 / 4 - 24) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
-                objectifx += (int) 3*397/4;
-                score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
-            }
+            typeMouve = DROITE;
         } else if (touche.compareTo("w") == 0) { // utilisateur appuie sur "w" pour envoyer la tuile vers le bas
-            if (objectify < (int) 613 - 2 * 397 / 4 - 25) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
-                objectify += (int) 3*397/4;
-                score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));  
-            }
+            typeMouve = BAS;
         } else if (touche.compareTo("z") == 0) { // utilisateur appuie sur "z" pour envoyer la tuile vers le haut
-            if (objectify > 191) { // possible uniquement si on est pas dans la colonne la plus à droite (taille de la fenêtre - 2*taille d'une case - taille entre la grille et le bord de la fenêtre)
-                objectify -= (int) 3*397/4;
-                score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
-            }
+            typeMouve = HAUT;
         }
-        moving();
-
+        
+        boolean deplacementok = this.modelgrille.lanceurDeplacerCases(typeMouve);
+        if (deplacementok) {
+             moving();
+        }
     }
     
+    /* Enciene methode utilisé, unitilse car deja persante dans les modeles
     public void initPane(Pane p) {
 
         if (Math.random()>0.5) {
@@ -265,7 +260,7 @@ public class FXMLDocumentController implements Initializable {
             p.setVisible(true);
             l.setVisible(true);
         }   
-    }
+    } */
 
     public boolean verifierTuile(Pane p){
         boolean present=false;
@@ -278,6 +273,7 @@ public class FXMLDocumentController implements Initializable {
         return present;
     }
     
+    // Fonction appeler lorsque un mouvement est effectué
     public void moving () {
         Task task = new Task<Void>() { // on définit une tâche parallèle pour mettre à jour la vue
             @Override 
@@ -294,31 +290,25 @@ public class FXMLDocumentController implements Initializable {
                         public void run() {
                             //javaFX operations should go here
                             
-                                p1.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
-                                p1.setVisible(true);  
+                                mouvement.play();
+                                mouvement.getChildren().clear();
                         }
                     }
                     );
-                    Thread.sleep(1);
+                    Thread.sleep(50);
                 } // end while
-                while (y != objectify) { // si la tuile n'est pas à la place qu'on souhaite attendre en abscisse
-                    if (y < objectify) {
-                        y += 1; // si on va vers le haut, on modifie la position de la tuile pixel par pixel vers le haut
-                    } else {
-                        y -= 1; // si on va vers le bas, idem en décrémentant la valeur de y
-                    }
-                    // Platform.runLater est nécessaire en JavaFX car la GUI ne peut être modifiée que par le Thread courant, contrairement à Swing où on peut utiliser un autre Thread pour ça
+            
                     Platform.runLater(new Runnable() { // classe anonyme
                         @Override
                         public void run() {
                             //javaFX operations should go here
-                            p1.relocate(x, y); // on déplace la tuile d'un pixel sur la vue, on attend 5ms et on recommence jusqu'à atteindre l'objectif
-                            p1.setVisible(true);    
+                            modelgrille.nouvelleCase(); //Creation d'une tuile avec une positione et un label entre "2" et "4"
+                            addCase(); //Ajout de la case dans le jeux
                         }
                     }       
                     );
                     Thread.sleep(1); 
-                } // end while
+                
                 return null; // la méthode call doit obligatoirement retourner un objet. Ici on n'a rien de particulier à retourner. Du coup, on utilise le type Void (avec un V majuscule) : c'est un type spécial en Java auquel on ne peut assigner que la valeur null
             } // end call
 
@@ -335,11 +325,20 @@ public class FXMLDocumentController implements Initializable {
         }
     }
     
+    // Methode qui permet de récuperer facilement la deniere case crée afin de l'incérer dans le jeux
+    public Case getNewcase() {
+        // Recuperation des objets constitué des Cases contenu dans la grille du modele
+        Object[] tabcase = this.modelgrille.getGrille().toArray();
+        Case newcase = (Case)tabcase[tabcase.length - 1];
+        return newcase;
+    }
+    
+    /*
     public boolean canMove() {
         boolean canmove = false;
          if (x!=objectifx && y!=objectify) {
              canmove = true; 
          }
          return canmove;
-    }
+    } */
 }
