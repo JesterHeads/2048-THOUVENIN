@@ -29,7 +29,11 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import javafx.scene.layout.RowConstraints;
 import model.Case;
 import model.Grille;
+
 import application.Parametres;
+
+import model.Tuile;
+
 //import javafx.scene.paint.Color;
 //import javafx.scene.text.Font;
 
@@ -120,8 +124,12 @@ public class FXMLDocumentController implements Initializable, Parametres {
        // fond.getChildren().remove(PaneEndGame); A FAIRE QUAND ON REINITIALISE LA PERTIE 
        
        // Creation de la premiere case lorsque l'on commence le jeux
+
        Case fistCase = new Case(0,0,2);
        this.modelgrille.getGrille().add(fistCase); //ajout de la Case au modele "manuelement car elle doit avoir une potition et un label particulier
+
+       Case firstCase = new Case(0,0,2);
+
        this.addCase(); //Appele de l a methode qui permettra d'ajouter la case graphiquement 
        System.out.println(this.modelgrille.getGrille());
     }
@@ -229,8 +237,8 @@ public class FXMLDocumentController implements Initializable, Parametres {
     public void initPane(Pane p) {
 
         if (Math.random()>0.5) {
-            Label l = new Label("4");
-            p.getStyleClass().add("pane"); 
+            Tuile l = new Tuile(4,(int)x,(int)y);
+            p.getStyleClass().add("pane");
             l.getStyleClass().add("tuile");
             grille.getStyleClass().add("gridpane");
             GridPane.setHalignment(l, HPos.CENTER);
@@ -245,7 +253,7 @@ public class FXMLDocumentController implements Initializable, Parametres {
             l.setVisible(true);
         } 
         else {
-            Label l = new Label("2");
+            Tuile l = new Tuile(2,(int)x,(int)y);
             p.getStyleClass().add("pane");
             l.getStyleClass().add("tuile");
             grille.getStyleClass().add("gridpane");
