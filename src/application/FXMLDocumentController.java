@@ -65,8 +65,8 @@ public class FXMLDocumentController implements Initializable, Parametres {
     private double x = 24, y = 191; //Plus etre utilisé
     private double objectifx = 24 , objectify = 191; // IDEM
     
-    private Grille modelgrille;
-    private int typeMouve;// L'oject grille issue du model Grille
+    private Grille modelgrille;// L'oject grille issue du model Grille
+    private int typeMouve;
  
     private double LargeurCase; // Largeur en px d'une case
     private double[] pixelXCase; // Tableau contenant l'abssise en px de chaque case
@@ -75,7 +75,7 @@ public class FXMLDocumentController implements Initializable, Parametres {
     
     final private double pX = 24; //Plus utiliser
     final private double pY = 191; //Plus utiliser
-    final private int TAILLEGRILLE = 4; //Notre grille est de format 4*4
+    
 
 
     @Override
@@ -86,8 +86,8 @@ public class FXMLDocumentController implements Initializable, Parametres {
    
         modelgrille = new Grille();
         fond.getStyleClass().add("fond");
-        pixelXCase = new double[TAILLEGRILLE];
-        pixelYCase = new double[TAILLEGRILLE];
+        pixelXCase = new double[TAILLE];
+        pixelYCase = new double[TAILLE];
         
         InitGrille();
 
@@ -98,23 +98,23 @@ public class FXMLDocumentController implements Initializable, Parametres {
         //Création des colonnes et des lignes
         grille.getRowConstraints().clear();
         grille.getColumnConstraints().clear();
-        for (int i = 0; i < TAILLEGRILLE; i++) {
+        for (int i = 0; i < TAILLE; i++) {
             grille.getRowConstraints().add(new RowConstraints(25, 100, USE_COMPUTED_SIZE, Priority.SOMETIMES, VPos.TOP, true));
             grille.getColumnConstraints().add(new ColumnConstraints(25, 100, USE_COMPUTED_SIZE, Priority.SOMETIMES, HPos.LEFT, true));
         }
 
         //Définition des limites des case en pixels
-        LargeurCase = grille.getPrefWidth() / TAILLEGRILLE;
+        LargeurCase = grille.getPrefWidth() / TAILLE;
         System.out.println(grille.getLayoutX() + (LargeurCase * 0));
         System.out.println(grille.getLayoutY());
-        for (int i = 0; i < TAILLEGRILLE; i++) {
+        for (int i = 0; i < TAILLE; i++) {
             pixelXCase[i] = grille.getLayoutX() + (LargeurCase * i);
             pixelYCase[i] = grille.getLayoutY() + (LargeurCase * i);
         }
 
         //Initialisation du fond de la grille avec le css
-        for (int i = 0; i < TAILLEGRILLE; i++) {
-            for (int j = 0; j < TAILLEGRILLE; j++) {
+        for (int i = 0; i < TAILLE; i++) {
+            for (int j = 0; j < TAILLE; j++) {
                 Pane casevide = new Pane();
                 casevide.getStyleClass().add("gridpane");
                 grille.add(casevide, i, j);
@@ -127,10 +127,8 @@ public class FXMLDocumentController implements Initializable, Parametres {
 
        Case fistCase = new Case(0,0,2);
        this.modelgrille.getGrille().add(fistCase); //ajout de la Case au modele "manuelement car elle doit avoir une potition et un label particulier
-
-       Case firstCase = new Case(0,0,2);
-
        this.addCase(); //Appele de l a methode qui permettra d'ajouter la case graphiquement 
+       
        System.out.println(this.modelgrille.getGrille());
     }
     
@@ -138,6 +136,7 @@ public class FXMLDocumentController implements Initializable, Parametres {
         // Recuperation des objets constitué des Cases contenu dans la grille du modele
         
         Case newcase = getNewcase();
+        newcase.setGrille(modelgrille);
         
         // Récupération des coordonnées des pixiels de la tuile
         double pixX = pixelXCase[(newcase.getX())];
