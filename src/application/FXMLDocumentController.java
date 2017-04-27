@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.Random;
 import javafx.geometry.VPos;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.animation.Transition;
+import javafx.util.Duration;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
 import javafx.scene.layout.Priority;
@@ -59,7 +61,7 @@ public class FXMLDocumentController implements Initializable, Parametres {
   
     
     
-    ArrayList<Pane> ListTuile = new ArrayList<Pane>();
+    
     
     private Pane p1 = new Pane(); //Ne doit plus etre utilisé (pas encore a supprimé sinon ereur de compilation (pour l'instant)
     private double x = 24, y = 191; //Plus etre utilisé
@@ -71,8 +73,8 @@ public class FXMLDocumentController implements Initializable, Parametres {
     private double LargeurCase; // Largeur en px d'une case
     private double[] pixelXCase; // Tableau contenant l'abssise en px de chaque case
     private double[] pixelYCase; // Tableau contenant l'ordonnée en px de chaque case
-    private ParallelTransition mouvement = new ParallelTransition();
-    
+
+    final private ArrayList<Pane> ListTuile = new ArrayList<Pane>();
     final private double pX = 24; //Plus utiliser
     final private double pY = 191; //Plus utiliser
     
@@ -105,8 +107,8 @@ public class FXMLDocumentController implements Initializable, Parametres {
 
         //Définition des limites des case en pixels
         LargeurCase = grille.getPrefWidth() / TAILLE;
-        System.out.println(grille.getLayoutX() + (LargeurCase * 0));
-        System.out.println(grille.getLayoutY());
+        
+      
         for (int i = 0; i < TAILLE; i++) {
             pixelXCase[i] = grille.getLayoutX() + (LargeurCase * i);
             pixelYCase[i] = grille.getLayoutY() + (LargeurCase * i);
@@ -163,6 +165,14 @@ public class FXMLDocumentController implements Initializable, Parametres {
         tuile.setLayoutY(pixY);
         tuile.setVisible(true);
         val.setVisible(true);
+        ListTuile.add(tuile);
+    }
+    
+    public Pane getPaneTuile (double pixelX, double pixelY) {
+        Pane tuile = new Pane();
+        tuile.setLayoutX(pixelX);
+        tuile.setLayoutY(pixelY);
+        return tuile;
     }
     
     
@@ -282,28 +292,32 @@ public class FXMLDocumentController implements Initializable, Parametres {
     
     // Fonction appeler lorsque un mouvement est effectué
     public void moving () {
+       Case c = getNewcase();
+
         Task task = new Task<Void>() { // on définit une tâche parallèle pour mettre à jour la vue
             @Override 
             public Void call() throws Exception { // implémentation de la méthode protected abstract V call() dans la classe Task
-                while (x != objectifx) { // si la tuile n'est pas à la place qu'on souhaite attendre en abscisse
-                    if (x < objectifx) {
-                        x += 1; // si on va vers la droite, on modifie la position de la tuile pixel par pixel vers la droite
-                    } else {
-                        x -= 1; // si on va vers la gauche, idem en décrémentant la valeur de x
-                    }
                     // Platform.runLater est nécessaire en JavaFX car la GUI ne peut être modifiée que par le Thread courant, contrairement à Swing où on peut utiliser un autre Thread pour ça
                     Platform.runLater(new Runnable() { // classe anonyme
                         @Override
                         public void run() {
-                            //javaFX operations should go here
+                            //javaFX operations should go here  
                             
-                                mouvement.play();
-                                mouvement.getChildren().clear();
+                            Duration speed = Duration.millis(250);  
+                                for (Pane p: ListTuile) {
+                                    TranslateTransition tt = new TranslateTransition(speed,p);                           
+                                    tt.setByX(pixelXCase[c.getX()]);
+                                    tt.setByY(pixelYCase[c.getY()]);
+
+                                    ParallelTransition mouvement = new ParallelTransition(tt);        
+                                    mouvement.play();
+
+                                }
                         }
                     }
                     );
-                    Thread.sleep(50);
-                } // end while
+                    Thread.sleep(250);
+                
             
                     Platform.runLater(new Runnable() { // classe anonyme
                         @Override
