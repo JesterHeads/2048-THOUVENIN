@@ -219,7 +219,7 @@ public class FXMLDocumentController implements Initializable, Parametres {
 
     @FXML
     private void handleButtonAction(MouseEvent event) {
-        System.out.println("Clic de souris sur le bouton menu");
+        InitGrille();
     }
 
     @FXML
@@ -236,6 +236,7 @@ public class FXMLDocumentController implements Initializable, Parametres {
         } else if (touche.compareTo("z") == 0) { // utilisateur appuie sur "z" pour envoyer la tuile vers le haut
             typeMouve = HAUT;
         }
+        score.setText(Integer.toString(Integer.parseInt(score.getText()) + 1));
         
         boolean deplacementok = this.modelgrille.lanceurDeplacerCases(typeMouve);
         if (deplacementok) {
