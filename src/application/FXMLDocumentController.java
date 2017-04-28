@@ -68,13 +68,13 @@ public class FXMLDocumentController implements Initializable, Parametres {
     private double objectifx = 24 , objectify = 191; // IDEM
     
     private Grille modelgrille;// L'oject grille issue du model Grille
-    private int typeMouve;
- 
+     
     private double LargeurCase; // Largeur en px d'une case
     private double[] pixelXCase; // Tableau contenant l'abssise en px de chaque case
     private double[] pixelYCase; // Tableau contenant l'ordonnée en px de chaque case
 
     final private ArrayList<Pane> ListTuile = new ArrayList<Pane>();
+    
     final private double pX = 24; //Plus utiliser
     final private double pY = 191; //Plus utiliser
     
@@ -91,6 +91,9 @@ public class FXMLDocumentController implements Initializable, Parametres {
         pixelXCase = new double[TAILLE];
         pixelYCase = new double[TAILLE];
         
+        //Définition des limites des case en pixels
+        LargeurCase = grille.getPrefWidth() / TAILLE;
+        
         InitGrille();
 
     }
@@ -100,15 +103,12 @@ public class FXMLDocumentController implements Initializable, Parametres {
         //Création des colonnes et des lignes
         grille.getRowConstraints().clear();
         grille.getColumnConstraints().clear();
+        
         for (int i = 0; i < TAILLE; i++) {
             grille.getRowConstraints().add(new RowConstraints(25, 100, USE_COMPUTED_SIZE, Priority.SOMETIMES, VPos.TOP, true));
             grille.getColumnConstraints().add(new ColumnConstraints(25, 100, USE_COMPUTED_SIZE, Priority.SOMETIMES, HPos.LEFT, true));
         }
-
-        //Définition des limites des case en pixels
-        LargeurCase = grille.getPrefWidth() / TAILLE;
-        
-      
+ 
         for (int i = 0; i < TAILLE; i++) {
             pixelXCase[i] = grille.getLayoutX() + (LargeurCase * i);
             pixelYCase[i] = grille.getLayoutY() + (LargeurCase * i);
@@ -224,6 +224,7 @@ public class FXMLDocumentController implements Initializable, Parametres {
 
     @FXML
     public void keyPressed(KeyEvent ke) {
+        int typeMouve = 0;
         System.out.println("touche appuyée");
             String touche = ke.getText();
         if (touche.compareTo("q") == 0) { // utilisateur appuie sur "q" pour envoyer la tuile vers la gauche
@@ -238,7 +239,7 @@ public class FXMLDocumentController implements Initializable, Parametres {
         
         boolean deplacementok = this.modelgrille.lanceurDeplacerCases(typeMouve);
         if (deplacementok) {
-             moving();
+             moving(typeMouve);
         }
     }
     
@@ -291,7 +292,7 @@ public class FXMLDocumentController implements Initializable, Parametres {
     }
     
     // Fonction appeler lorsque un mouvement est effectué
-    public void moving () {
+    public void moving (int typemove) {
        Case c = getNewcase();
 
         Task task = new Task<Void>() { // on définit une tâche parallèle pour mettre à jour la vue
